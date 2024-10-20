@@ -1,0 +1,160 @@
+.new-bill-container {
+    padding: 20px;
+    background-color: #f8f9fa;
+    max-width: 800px; /* Set a maximum width for better alignment */
+    margin: auto; /* Center the container */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+  
+  .bill-header {
+    text-align: center;
+  }
+  
+  .bill-header h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+  
+  .bill-header p {
+    margin: 5px 0;
+  }
+  
+  .bill-details, .item-list {
+    margin-top: 20px;
+  }
+  
+  .bill-details h3, .item-list h3 {
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .form-group {
+    margin: 10px 0;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .form-group input {
+    width: 100%; /* Full width for form inputs */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .form-row {
+    display: flex; /* Use flexbox for horizontal layout */
+    justify-content: space-between; /* Evenly space the items */
+    gap: 20px; /* Space between the fields */
+  }
+  
+  .form-field {
+    flex: 1; /* Allow each field to take equal width */
+  }
+  
+  .form-field label {
+    display: block; /* Ensure the label takes full width */
+    margin-bottom: 5px; /* Spacing between label and input */
+  }
+  
+  .form-field input {
+    width: 100%; /* Full width for input fields */
+    padding: 8px; /* Padding inside input */
+    border: 1px solid #ccc; /* Border for input */
+    border-radius: 4px; /* Rounded corners */
+  }
+  
+  
+  .item-header {
+    display: flex;
+    background-color: #e9ecef;
+    padding: 10px;
+    border-radius: 4px;
+    font-weight: bold;
+  }
+  
+  .item-header div {
+    flex: 1; /* Equal space for each column */
+    text-align: center;
+  }
+  
+  .item-row {
+    display: flex;
+    justify-content: space-between; /* Aligns the fields evenly */
+    align-items: center;
+    margin: 10px 0;
+  }
+  
+  .item-row input {
+    flex: 1; /* Each input takes equal space */
+    margin: 0 5px; /* Adds spacing between inputs */
+    min-width: 0; /* Prevents inputs from growing larger than their container */
+  }
+  
+  .item-row input:last-child {
+    margin-right: 0; /* Remove right margin from the last input */
+  }
+  
+  .add-item-button {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .add-item-button:hover {
+    background-color: #0056b3;
+  }
+  
+  .payment-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .payment-buttons button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .payment-buttons button:first-child {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .payment-buttons button:last-child {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  .payment-buttons button:hover {
+    opacity: 0.8;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .item-row {
+      flex-direction: column; /* Stack inputs vertically on smaller screens */
+      align-items: stretch; /* Ensure inputs stretch to full width */
+    }
+    
+    .item-row input {
+      margin: 5px 0; /* Vertical spacing for stacked inputs */
+    }
+  
+    .item-header {
+      flex-direction: column; /* Stack headers vertically */
+      text-align: left; /* Align text to the left */
+    }
+  
+    .item-header div {
+      margin-bottom: 5px; /* Spacing between header items */
+    }
+  }
+  

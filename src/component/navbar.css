@@ -1,0 +1,61 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #ffffff;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .nav-left {
+    display: flex;
+    align-items: center;
+  }
+  
+  .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-right: 30px;
+    color: #333;
+  }
+  
+  .nav-links {
+    display: flex;
+    gap: 15px; /* Space between links */
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .nav-links li {
+    padding: 10px 15px; /* Padding inside each link */
+    border: 2px solid transparent;
+    border-radius: 8px; /* Rounded corners for each link box */
+    background-color: white; /* White background for links */
+    transition: all 0.3s ease; /* Smooth transition */
+    cursor: pointer;
+  }
+  
+  .nav-links li:hover {
+    background-color: #4CAF50; /* Green background on hover */
+    color: white; /* White text on hover */
+    border-color: #4CAF50; /* Green border on hover */
+  }
+  
+  .new-bill-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .new-bill-button:hover {
+    background-color: #45a049;
+  }
+
+  
+  
+  
