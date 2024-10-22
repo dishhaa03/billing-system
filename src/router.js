@@ -1,12 +1,12 @@
 import { createBrowserRouter } from "react-router-dom";
-import App from "./App";
-import Home from "./pages/Home";
-import User from "./pages/UserList";
-import Bills from "./pages/BillList";
-import Insights from "./pages/Insights";
-import UserDetails from "./pages/UserDetails";
-import BillDetails from "./pages/BillDetails";
-import NewBill from "./pages/NewBill";
+import App from "./App.js";
+import Home from "./pages/Home.js";
+import User from "./pages/UserList.js";
+import Bills from "./pages/BillList.js";
+import Insights from "./pages/Insights.js";
+import UserDetails from "./pages/UserDetails.js";
+import BillDetails from "./pages/BillDetails.js";
+import NewBill from "./pages/NewBill.js";
 
 // Define the routes using the createBrowserRouter API
 const router = createBrowserRouter([

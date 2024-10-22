@@ -1,7 +1,7 @@
 // import logo from './logo.svg';
 import './App.css';
 import React from 'react';
-import Navbar from './component/navbar';
+import Navbar from './component/navbar.js';
 import { Outlet } from 'react-router-dom';
 import './App.css';
 
