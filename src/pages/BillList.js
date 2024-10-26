@@ -1,24 +1,39 @@
 // src/pages/BillsList.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './BillList.css';
 
-// Dummy data for now (to simulate backend response)
-const bills = [
-  { id: 1, date: '2024-10-15', user: 'Alice Johnson', amount: 500.25 },
-  { id: 2, date: '2024-10-10', user: 'Bob Smith', amount: 1200.00 },
-  { id: 3, date: '2024-10-18', user: 'Charlie Brown', amount: 750.75 },
-];
-
-// Sort bills by date (latest first)
-bills.sort((a, b) => new Date(b.date) - new Date(a.date));
-
 const BillsList = () => {
+  const [bills, setBills] = useState([]); // State to store fetched bills
+  const [loading, setLoading] = useState(true); // Loading indicator
+  const [error, setError] = useState(null); // Error handling
+
   const navigate = useNavigate();
 
+  // Fetch bills from backend on component mount
+  useEffect(() => {
+    const fetchBills = async () => {
+      try {
+        const response = await axios.get('/api/bills'); // API call to fetch bills
+        setBills(response.data); // Store the fetched bills in state
+      } catch (err) {
+        console.error('Error fetching bills:', err);
+        setError('Failed to fetch bills.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBills();
+  }, []);
+
   const handleBillClick = (billId) => {
-    navigate(`/bills/${billId}`); // Navigate to dynamic bill route
+    navigate(`/bills/${billId}`); // Navigate to the bill detail page
   };
+
+  if (loading) return <p>Loading bills...</p>;
+  if (error) return <p>{error}</p>;
 
   return (
     <div className="bills-list-container">
@@ -26,15 +41,23 @@ const BillsList = () => {
       <div className="bill-stack">
         {bills.map((bill) => (
           <div
-            key={bill.id}
+            key={bill._id}
             className="bill-card"
-            onClick={() => handleBillClick(bill.id)}
+            onClick={() => handleBillClick(bill._id)}
           >
             <div className="bill-info">
-              <p><strong>Bill ID:</strong> {bill.id}</p>
-              <p><strong>Date:</strong> {bill.date}</p>
-              <p><strong>User:</strong> {bill.user}</p>
-              <p className="bill-amount"><strong>Amount:</strong> ${bill.amount.toFixed(2)}</p>
+              <p><strong>Bill ID:</strong> {bill._id}</p>
+              <p><strong>Date:</strong> {new Date(bill.billDate).toLocaleDateString()}</p>
+              <p><strong>User:</strong> {bill.user?.name || 'Unknown User'}</p>
+              <p className="bill-amount">
+                <strong>Total Amount:</strong> ₹{bill.totalAmount.toFixed(2)}
+              </p>
+              <p className="bill-amount">
+                <strong>Pending Amount:</strong> ₹{bill.pendingAmount.toFixed(2)}
+              </p>
+              <p>
+                <strong>Status:</strong> {bill.isCleared ? 'Cleared' : 'Pending'}
+              </p>
             </div>
           </div>
         ))}

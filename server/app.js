@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 
+
 const app = express();
 
 app.use(cors({
@@ -18,9 +19,13 @@ app.get('/', (req, res)=>{
 })
 
 import userRoutes from './routes/userRoutes.js';
+import productRoutes from './routes/productRoutes.js';
+import billRoutes from './routes/billRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 app.use('/api/users', userRoutes);
 app.use(productRoutes);
 app.use(billRoutes);
+app.use(paymentRoutes);
 
 
 export { app }

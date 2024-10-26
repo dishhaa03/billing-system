@@ -7,10 +7,20 @@ const NewBill = () => {
   const [customerName, setCustomerName] = useState('');
   const [contactNo, setContactNo] = useState('');
   const [users, setUsers] = useState([]);
+  const [userid, setUserId] = useState(null);
   const [items, setItems] = useState([{ item: '', quantity: '',sellingPrice: '', discountPercentage: '', discountedPrice: '', totalPrice: '' }]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [payableAmount, setPayableAmount] = useState(0);
   const [isNewName, setIsNewName] = useState(false);
+  const [payments, setPayments] = useState([]); // Store payment objects
+  const [paymentIds, setPaymentIds] = useState([]); // Store payment IDs
+
+  // For payments:
+  const [showOnlinePayment, setShowOnlinePayment] = useState(false);
+  const [showCashPayment, setShowCashPayment] = useState(false);
+
+  const [onlinePaymentAmount, setOnlinePaymentAmount] = useState(payableAmount);
+  const [cashPaymentAmount, setCashPaymentAmount] = useState(payableAmount);
 
   // Function to add a new item row
   useEffect(() => {
@@ -30,9 +40,31 @@ const NewBill = () => {
     setPayableAmount(totalAmount); // Sync payable amount with total initially
   }, [totalAmount]);
 
+  useEffect(()=>{
+    setCashPaymentAmount(payableAmount);
+    setOnlinePaymentAmount(payableAmount);
+  }, [payableAmount]);
+
   const addItem = () => {
     setItems([...items, { item: '', quantity: '', sellingPrice: '', discountPercentage: '', discountedPrice: '', totalPrice: '' }]);
   };
+
+  const deleteItem = ()=>{
+    if (items.length === 0) {
+      return;
+    }
+    // Remove the last item from the state
+    setItems((prevItems) => prevItems.slice(0, -1));
+  }
+
+  const handleShowOnlinePayment = () =>{
+    setShowOnlinePayment(!showCashPayment);
+    setShowCashPayment(false);
+  } 
+  const handleShowCashPayment = () =>{
+    setShowCashPayment(!showCashPayment);
+    setShowOnlinePayment(false);
+  } 
 
   const handleNameChange = (e) => {
     const inputName = e.target.value;
@@ -40,6 +72,7 @@ const NewBill = () => {
 
     // Find the user matching the input
     const selectedUser = users.find((user) => user.name === inputName);
+    setUserId(selectedUser?._id);
     if (selectedUser) {
       setContactNo(selectedUser.contactNo); // Autofill contact number
       setIsNewName(false);
@@ -81,15 +114,49 @@ const NewBill = () => {
     calculateTotalAmount(); // Recalculate total amount for the bill
   };
 
+  const handleAddPayment = async (amount, isCash, qrDetails = "") => {
+    const newPayment = {
+      billId: null,
+      amount,
+      isCash,
+      status: "SUCCESS", // Assuming successful for now
+      qrDetails,
+    };
+
+    try {
+      const response = await axios.post("/api/payments", newPayment);
+      console.log("Payment Response:", response);
+
+      if (response.status === 201) {
+        const paymentId = response.data._id;
+
+        // Update both payments and paymentIds state
+        setPayments([...payments, newPayment]); // Add payment object
+        setPaymentIds([...paymentIds, paymentId]); // Store the new payment ID
+
+        alert(`Payment of ₹${amount} added successfully!`);
+      } else {
+        throw new Error("Failed to save payment.");
+      }
+    } catch (error) {
+      console.error("Error adding payment:", error);
+      alert("Error occurred while adding the payment.");
+    }
+  };
+
   // Function to calculate total amount of the bill
   const calculateTotalAmount = () => {
     const total = items.reduce((acc, item) => acc + (parseFloat(item.totalPrice) || 0), 0);
     setTotalAmount(total.toFixed(2));
   };
 
-  const handleSubmit = (e) => {
+  const calculateTotalPaidAmount = () => {
+    return payments.reduce((total, payment) => total + Number(payment.amount), 0);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle submission logic here (e.g., saving to backend)
+  
     console.log({
       billId,
       customerName,
@@ -97,7 +164,79 @@ const NewBill = () => {
       items,
       totalAmount,
       payableAmount,
+      payments,
     });
+  
+    try {
+      const totalPaidAmount = calculateTotalPaidAmount();
+      const pendingAmount = payableAmount - totalPaidAmount;
+      const isCleared = totalPaidAmount >= payableAmount;
+
+      console.log(`Total Paid: ₹${totalPaidAmount}, Pending: ₹${pendingAmount}`);
+
+      // Step 1: Send all items to the backend and receive product IDs
+      const productPromises = items.map((item) =>
+        axios.post('/api/products', {
+          itemName: item.item,
+          quantity: item.quantity,
+          sellingPrice: item.sellingPrice,
+          discountPercentage: item.discountPercentage || 0,
+          discountedPrice: item.discountedPrice,
+          totalPrice: item.totalPrice,
+        })
+      );
+  
+      const productResponses = await Promise.all(productPromises);
+      const productIds = productResponses.map((res) => res.data._id);
+  
+      console.log('Product IDs:', productIds);
+  
+      // Step 2: Create the bill with the product IDs and payment information
+      const billPayload = {
+        user: userid, 
+        products: productIds,
+        totalAmount: parseFloat(totalAmount),
+        totalPayableAmount: parseFloat(payableAmount),
+        pendingAmount: pendingAmount, // Assuming no payments made yet
+        payments: paymentIds, // Array of payment ids
+        billDate: new Date().toISOString(),
+        isPending: true, // Default as pending
+        isCleared, // Not cleared initially
+      };
+  
+      const billResponse = await axios.post('/api/bills', billPayload);
+      console.log("Bill Payload:", billPayload);
+      console.log("Bill Response:", billResponse);
+  
+      if (billResponse.status === 201) {
+        const savedBill = billResponse.data;
+        console.log("Bill saved successfully:", savedBill);
+  
+        // Step 3: Update products and payments with the bill ID
+        const updatePayload = {
+          billId: savedBill._id,
+          productIds,
+          paymentIds,
+          userid,
+        };
+  
+        const updateResponse = await axios.post(
+          "/api/bills/update-bill-ids",
+          updatePayload
+        );
+  
+        if (updateResponse.status === 200) {
+          alert("Bill saved and references updated successfully!");
+        } else {
+          throw new Error("Failed to update product and payment references.");
+        }
+      } else {
+        throw new Error("Failed to save bill.");
+      }
+    } catch (error) {
+      console.log('Error saving bill:', error);
+      alert('Error occurred while saving the bill.');
+    }
   };
 
   return (
@@ -159,6 +298,7 @@ const NewBill = () => {
               <input type="text" name="totalPrice" placeholder="Total Price" value={item.totalPrice} readOnly />
             </div>
           ))}
+          <button type="button" onClick={deleteItem} className="delete-item-button">Delete Item</button>
           <button type="button" onClick={addItem} className="add-item-button">Add Item</button>
         </div>
 
@@ -173,8 +313,45 @@ const NewBill = () => {
         </h3>
 
         <div className="payment-buttons">
-          <button type="submit">Pay Online</button>
-          <button type="button">Cash Payment</button>
+          <button type="button" onClick={handleShowOnlinePayment}>Pay Online</button>
+          <button type="button" onClick={handleShowCashPayment}>Cash Payment</button>
+        </div>
+        {/* Online Payment Section */}
+        {showOnlinePayment && (
+          <div className="online-payment">
+            <h3>Online Payment</h3>
+            <input
+              type="number"
+              value={onlinePaymentAmount}
+              onChange={(e) => setOnlinePaymentAmount(e.target.value)}
+            />
+            <button type="button"
+              onClick={() => handleAddPayment(onlinePaymentAmount, false, "QR12345")}
+            >
+              Generate QR
+            </button>
+          </div>
+        )}
+
+        {/* Cash Payment Section */}
+        {showCashPayment && (
+          <div className="cash-payment">
+            <h3>Cash Payment</h3>
+            <input
+              type="number"
+              value={cashPaymentAmount}
+              onChange={(e) => setCashPaymentAmount(e.target.value)}
+            />
+            <button type="button"
+              onClick={() => handleAddPayment(cashPaymentAmount, true)}
+            >
+              Paid Cash
+            </button>
+          </div>
+        )}
+
+        <div className="payment-buttons">
+          <button type="submit">Save Bill</button>
         </div>
       </form>
     </div>

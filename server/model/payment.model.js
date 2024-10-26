@@ -3,10 +3,10 @@ import mongoose, { Schema } from "mongoose";
 // Define the Payment schema
 const paymentSchema = new Schema(
   {
-    bill: {
+    billid: {
       type: Schema.Types.ObjectId,
       ref: "Bill", // Reference to the Bill model
-      required: true,
+      // required: true,
     },
     amount: {
       type: Number,
@@ -22,8 +22,8 @@ const paymentSchema = new Schema(
       required: true, // Whether the payment was made in cash or not
     },
     status: {
-      type: Boolean,
-      default: false, // If payment is successful, set to true
+      type: String,
+      enum: ["SUCCESS", "FAILED"],
     },
     qrDetails: {
       type: String, // Store QR code-related information or reference

@@ -3,10 +3,10 @@ import mongoose, { Schema } from "mongoose";
 // Define the Product schema
 const productSchema = new Schema(
   {
-    bill: {
+    billid: {
       type: Schema.Types.ObjectId,
       ref: "Bill", // Reference to the Bill model
-      required: true,
+      // required: true,
     },
     itemName: {
       type: String,
