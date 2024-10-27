@@ -2,6 +2,7 @@
 import { Bill } from "../model/bill.model.js";
 import {Payment} from "../model/payment.model.js";
 import { Product } from "../model/product.model.js";
+import { User } from "../model/user.model.js";
 
 // Add a new bill
 export const addBill = async (req, res) => {
@@ -9,19 +10,24 @@ export const addBill = async (req, res) => {
     const { user, products, totalAmount, totalPayableAmount, pendingAmount, payments, billDate, isPending, isCleared } = req.body;
 
     const newBill = new Bill({
-      user,
+      user: user,
       products,
       totalAmount,
       totalPayableAmount,
       pendingAmount,
       payments,
       billDate,
-      isPending: true,
-      isCleared: false,
+      isPending: isPending,
+      isCleared: isCleared,
     });
 
-    const savedBill = await newBill.save();
-    res.status(201).json(savedBill);
+    try{
+      const savedBill = await newBill.save();
+      console.log('savedBill:', savedBill);
+      res.status(201).json(savedBill);
+    }catch (error){
+      console.log("Error in saving bll to the database", error);
+    }
   } catch (error) {
     res.status(500).json({ error: "Failed to save bill." });
   }
@@ -29,7 +35,7 @@ export const addBill = async (req, res) => {
 
 
 export const updateBillIds = async (req, res) => {
-  const { billId, productIds, paymentIds, userId } = req.body;
+  const { billId, productIds, paymentIds, userId, totalAmount, pendingAmount } = req.body;
   // UserId task is remaining.
 
   try {
@@ -44,6 +50,23 @@ export const updateBillIds = async (req, res) => {
       { _id: { $in: paymentIds } }, // Match the payment IDs
       { $set: { billid: billId } }    // Set the bill field
     );
+
+    // console.log(totalAmount, " ", pendingAmount);
+    // console.log(typeof totalAmount, " ", typeof pendingAmount);
+    console.log(userId);
+    const updateUserFields = {
+      $push: { bills: billId }, // Add billId to the bills array
+      $inc: { totalPurchaseAmount: totalAmount }, // Increment total purchase amount
+    };
+
+    // If the bill has a pending amount, add it to pendingBills and update totalPendingAmount
+    if (pendingAmount > 0) {
+      updateUserFields.$push = { pendingBills: billId }; // Add bill to pendingBills
+      updateUserFields.$inc.totalPendingAmount = pendingAmount; // Increment pending amount
+    }
+
+    // Step 4: Perform the user update
+    await User.findByIdAndUpdate(userId, updateUserFields, { new: true });
 
     res.status(200).json({ message: "Bill IDs updated successfully!" });
   } catch (error) {

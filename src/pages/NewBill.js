@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './NewBill.css'; 
+import { useNavigate } from 'react-router-dom';
 
 const NewBill = () => {
   const [billId] = useState(Date.now().toString()); // Unique bill ID
@@ -21,6 +22,8 @@ const NewBill = () => {
 
   const [onlinePaymentAmount, setOnlinePaymentAmount] = useState(payableAmount);
   const [cashPaymentAmount, setCashPaymentAmount] = useState(payableAmount);
+
+  const navigate = useNavigate();
 
   // Function to add a new item row
   useEffect(() => {
@@ -87,6 +90,7 @@ const NewBill = () => {
     axios.post('/api/users', { name: customerName, contactNo })
       .then((response) =>{
         setUsers([...users, response.data]);
+        setUserId(response.data._id);
         alert('User added successfully');
         setIsNewName(false);
       })
@@ -201,12 +205,10 @@ const NewBill = () => {
         payments: paymentIds, // Array of payment ids
         billDate: new Date().toISOString(),
         isPending: true, // Default as pending
-        isCleared, // Not cleared initially
+        isCleared: isCleared, // Not cleared initially
       };
   
       const billResponse = await axios.post('/api/bills', billPayload);
-      console.log("Bill Payload:", billPayload);
-      console.log("Bill Response:", billResponse);
   
       if (billResponse.status === 201) {
         const savedBill = billResponse.data;
@@ -217,7 +219,9 @@ const NewBill = () => {
           billId: savedBill._id,
           productIds,
           paymentIds,
-          userid,
+          userId: userid,
+          totalAmount: parseFloat(payableAmount),
+          pendingAmount: parseFloat(pendingAmount),
         };
   
         const updateResponse = await axios.post(
@@ -227,6 +231,7 @@ const NewBill = () => {
   
         if (updateResponse.status === 200) {
           alert("Bill saved and references updated successfully!");
+          navigate('/bills');
         } else {
           throw new Error("Failed to update product and payment references.");
         }

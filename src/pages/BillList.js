@@ -50,7 +50,7 @@ const BillsList = () => {
               <p><strong>Date:</strong> {new Date(bill.billDate).toLocaleDateString()}</p>
               <p><strong>User:</strong> {bill.user?.name || 'Unknown User'}</p>
               <p className="bill-amount">
-                <strong>Total Amount:</strong> ₹{bill.totalAmount.toFixed(2)}
+                <strong>Total Amount:</strong> ₹{bill.totalPayableAmount.toFixed(2)}
               </p>
               <p className="bill-amount">
                 <strong>Pending Amount:</strong> ₹{bill.pendingAmount.toFixed(2)}
