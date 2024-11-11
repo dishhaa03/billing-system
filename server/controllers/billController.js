@@ -87,3 +87,82 @@ export const getAllBills = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch bills' });
   }
 };
+
+export const getBillById = async (req, res) => {
+  const { billid } = req.params;
+  console.log("billid: ", billid);
+
+  try {
+    const bill = await Bill.findById(billid)
+      .populate('user') // Populate user details
+      .populate('products payments'); // Populate product and payment details
+
+    if (!bill) {
+      return res.status(404).json({ error: 'Bill not found.' });
+    }
+
+    res.status(200).json(bill);
+  } catch (error) {
+    console.error('Error fetching bill:', error);
+    res.status(500).json({ error: 'Failed to fetch bill.' });
+  }
+};
+
+export const updateBill = async (req, res) => {
+  const { billid } = req.params; // Extract bill ID
+  const { products, newPaymentIds, totalAmount, totalPayableAmount } = req.body;
+
+  try {
+    // 1. Fetch the existing bill
+    let bill = await Bill.findById(billid)
+      .populate("products")
+      .populate("payments");
+
+    if (!bill) {
+      return res.status(404).json({ error: "Bill not found" });
+    }
+
+    // 2. Handle product updates (Add/Update/Delete logic)
+    const updatedProductIds = [];
+    for (const product of products) {
+      if (product._id) {
+        // Update existing product
+        await Product.findByIdAndUpdate(product._id, product);
+        updatedProductIds.push(product._id);
+      } else {
+        // Add new product
+        const newProduct = new Product(product);
+        await newProduct.save();
+        updatedProductIds.push(newProduct._id);
+      }
+    }
+    
+    // 3. Remove any products that were deleted
+    const existingProductIds = bill.products.map(p => p._id.toString());
+    const productsToRemove = existingProductIds.filter(
+      id => !updatedProductIds.includes(id)
+    );
+    await Product.deleteMany({ _id: { $in: productsToRemove } });
+    bill.products = updatedProductIds;
+
+    bill.payments.push(...newPaymentIds);
+    const totalPaid = await Payment.aggregate([
+      { $match: { _id: { $in: bill.payments } } },
+      { $group: { _id: null, totalPaid: { $sum: "$amount" } } }
+    ]).then((result) => (result[0] ? result[0].totalPaid : 0));
+    console.log("Total Paid: ", totalPaid);
+    console.log("Total payable: ", totalPayableAmount);
+
+    // 6. Update the bill with new values
+    bill.totalAmount = totalAmount;
+    bill.totalPayableAmount = totalPayableAmount;
+    bill.pendingAmount = totalPayableAmount - totalPaid;
+    bill.isCleared = bill.pendingAmount <= 0;
+
+    const updatedBill = await bill.save();
+    res.status(200).json({ message: "Bill updated successfully.", updatedBill});
+  } catch (error) {
+    console.error("Error updating bill:", error);
+    res.status(500).json({ error: "Failed to update bill" });
+  }
+};

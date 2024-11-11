@@ -23,6 +23,7 @@ import productRoutes from './routes/productRoutes.js';
 import billRoutes from './routes/billRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 app.use('/api/users', userRoutes);
+app.use('/', userRoutes);
 app.use(productRoutes);
 app.use(billRoutes);
 app.use(paymentRoutes);

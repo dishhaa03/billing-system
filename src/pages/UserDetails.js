@@ -1,14 +1,62 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
+// src/pages/BillDetailsList.js
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import './BillList.css'; // Reusing your CSS styles
 
-const UserDetail = () => {
-  const { userId } = useParams(); // Get userId from the URL
+const BillDetailsList = () => {
+  const { userId } = useParams(); // Extract userId from route params
+  const [bills, setBills] = useState([]); // Store bills in state
+  const [loading, setLoading] = useState(true); // Loading indicator
+  const [error, setError] = useState(null); // Error state
+  
+  const navigate = useNavigate();
+  // Fetch bills for the given user
+  useEffect(() => {
+    const fetchBills = async () => {
+      try {
+        const response = await axios.get(`/api/user/${userId}`);
+        setBills(response.data); // Set the fetched bills in state
+      } catch (error) {
+        console.error('Error fetching bills:', error);
+        setError('Failed to fetch bills.');
+      } finally {
+        setLoading(false); // Stop loading
+      }
+    };
+
+    fetchBills(); // Call the function
+  }, [userId]); // Re-fetch if userId changes
+
+  if (loading) return <p>Loading bills...</p>; // Show loading message
+  if (error) return <p>{error}</p>; // Show error message
+
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>User Detail Page</h1>
-      <p>Showing details for <strong>User ID: </strong>{userId}</p>
+    <div className="bills-list-container">
+      <h2>User's Bills</h2>
+      <div className="bill-stack">
+        {bills.length === 0 ? (
+          <p>No bills found for this user.</p>
+        ) : (
+          bills.map((bill) => (
+            <div 
+              key={bill._id} 
+              className="bill-card"
+              onClick={() => navigate(`/bills/${bill._id}`)} // Action on click
+            >
+              <div className="bill-info">
+                <p><strong>Bill ID:</strong> {bill._id}</p>
+                <p><strong>Date:</strong> {new Date(bill.billDate).toLocaleDateString()}</p>
+                <p><strong>Total Amount:</strong> ${bill.totalPayableAmount.toFixed(2)}</p>
+                <p><strong>Pending Amount:</strong> ${bill.pendingAmount.toFixed(2)}</p>
+                <p><strong>Status:</strong> {bill.isCleared ? 'Cleared' : 'Pending'}</p>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };
 
-export default UserDetail;
+export default BillDetailsList;
