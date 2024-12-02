@@ -12,7 +12,9 @@ const UserList = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('/api/users'); // Adjust the route if necessary
+        const response = await axios.get('http://localhost:5000/api/users'); // Adjust the route if necessary
+        console.log("Response is", response);
+        console.log("Response data is", response.data);
         setUsers(response.data);
       } catch (error) {
         console.error('Error fetching users:', error);

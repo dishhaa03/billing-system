@@ -13,6 +13,7 @@ const Home = () => {
   // Function to remove a bill from the frontend
   const removeBill = (id) => {
     const updatedBills = bills.filter((bill) => bill.id !== id);
+    console.log("I am here");
     setBills(updatedBills);
   };
 

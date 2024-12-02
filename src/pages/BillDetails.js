@@ -29,7 +29,7 @@ const BillDetails = () => {
     const fetchBill = async () => {
       try {
         // console.log('billid from frontend:', billid);
-        const response = await axios.get(`/api/bills/${billid}`);
+        const response = await axios.get(`http://localhost:5000/api/bills/${billid}`);
         const billData = response.data;
         console.log('Bill Data:', billData);
         setBill(billData);
@@ -119,7 +119,7 @@ const BillDetails = () => {
     };
 
     try {
-      const response = await axios.post("/api/payments", newPayment);
+      const response = await axios.post("http://localhost:5000/api/payments", newPayment);
       console.log("Payment Response:", response);
 
       if (response.status === 201) {
@@ -150,7 +150,7 @@ const BillDetails = () => {
         totalPayableAmount: parseFloat(payableAmount),
       };
   
-      const response = await axios.put(`/api/bills/${billid}`, updatedBillData);
+      const response = await axios.put(`http://localhost:5000/api/bills/${billid}`, updatedBillData);
       console.log("Updated Bill:", response.data);
   
       alert("Bill updated successfully!");

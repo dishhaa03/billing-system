@@ -15,7 +15,7 @@ const BillDetailsList = () => {
   useEffect(() => {
     const fetchBills = async () => {
       try {
-        const response = await axios.get(`/api/user/${userId}`);
+        const response = await axios.get(`http://localhost:5000/api/user/${userId}`);
         setBills(response.data); // Set the fetched bills in state
       } catch (error) {
         console.error('Error fetching bills:', error);
